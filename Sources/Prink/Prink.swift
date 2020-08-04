@@ -1,3 +1,2 @@
-struct Prink {
-    var text = "Hello, World!"
+public struct Prink {
 }
