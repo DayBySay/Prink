@@ -8,9 +8,10 @@
 import Foundation
 import LinkPresentation
 
-@available (iOS 13.0, *)
 public protocol PrinkRepository {
+    @available (iOS 13.0, *)
     func metadata(url: URL) -> LPLinkMetadata?
+    @available (iOS 13.0, *)
     func store(metadata: LPLinkMetadata) -> Bool
 }
 
@@ -18,22 +19,24 @@ public protocol PrinkRepository {
 internal class OnMemoryRepository: PrinkRepository {
     private var metadataDictionary: [URL: LPLinkMetadata] = [:]
 
+    @available (iOS 13.0, *)
     func store(metadata: LPLinkMetadata) -> Bool {
         guard let url = metadata.url else { return false }
         metadataDictionary[url] = metadata
         return true
     }
     
+    @available (iOS 13.0, *)
     func metadata(url: URL) -> LPLinkMetadata? {
         return metadataDictionary[url]
     }
 }
 
-@available (iOS 13.0, *)
 internal class UserDefaultRepository: PrinkRepository {
     private let store = UserDefaults.standard
     private let key = "PrinkCache"
     
+    @available (iOS 13.0, *)
     func store(metadata: LPLinkMetadata) -> Bool {
         do {
             let data = try NSKeyedArchiver.archivedData(withRootObject: metadata, requiringSecureCoding: true)
@@ -46,6 +49,7 @@ internal class UserDefaultRepository: PrinkRepository {
         }
     }
     
+    @available (iOS 13.0, *)
     func metadata(url: URL) -> LPLinkMetadata? {
         guard let metadatas = store.dictionary(forKey: key) as? [String: Data],
             let data = metadatas[url.absoluteString] else {
