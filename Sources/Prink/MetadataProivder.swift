@@ -32,15 +32,16 @@ public class PrinkMetadataProvider: MetadataProivder {
     
     private func fetchMetadata(url: URL, completion: ((LPLinkMetadata?, Error?) -> Void)?) {
         let provider = LPMetadataProvider()
-        provider.startFetchingMetadata(for: url) { (metadata, error) in
-            DispatchQueue.main.async {
-                if let error = error {
-                    completion?(nil, error)
-                    return
-                }
-                
-                completion?(metadata, nil)
+        provider.startFetchingMetadata(for: url) { [weak self] (metadata, error) in
+            if let error = error {
+                completion?(nil, error)
+                return
             }
+
+            if let metadata = metadata {
+                _ = self?.repository.store(metadata: metadata)
+            }
+            completion?(metadata, nil)
         }
     }
 }
