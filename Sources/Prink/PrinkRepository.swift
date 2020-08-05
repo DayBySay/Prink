@@ -8,11 +8,13 @@
 import Foundation
 import LinkPresentation
 
+@available (iOS 13.0, *)
 public protocol PrinkRepository {
     func metadata(url: URL) -> LPLinkMetadata?
     func store(metadata: LPLinkMetadata) -> Bool
 }
 
+@available (iOS 13.0, *)
 internal class OnMemoryRepository: PrinkRepository {
     private var metadataDictionary: [URL: LPLinkMetadata] = [:]
 
@@ -27,6 +29,7 @@ internal class OnMemoryRepository: PrinkRepository {
     }
 }
 
+@available (iOS 13.0, *)
 internal class UserDefaultRepository: PrinkRepository {
     private let store = UserDefaults.standard
     private let key = "PrinkCache"

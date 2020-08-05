@@ -8,10 +8,12 @@
 import Foundation
 import LinkPresentation
 
+@available (iOS 13.0, *)
 public protocol MetadataProivder {
     func metadata(url: URL, completion: ((LPLinkMetadata?, Error?) -> Void)?)
 }
 
+@available (iOS 13.0, *)
 public class PrinkMetadataProvider: MetadataProivder {
     private let repository: PrinkRepository
     
