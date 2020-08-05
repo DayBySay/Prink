@@ -8,56 +8,30 @@
 import Foundation
 import LinkPresentation
 
-protocol MetadataProivder {
-    func metadata(url: URL, completion: ((PrinkMetadata?, Error?) -> Void)?)
+public protocol PrinkRepository {
+    func metadata(url: URL) -> LPLinkMetadata?
+    func store(metadata: LPLinkMetadata) -> Bool
 }
 
-class PrinkMetadataProvider: MetadataProivder {
-    private let repository: PrinkRepository
-    
-    init(repository: PrinkRepository) {
-        self.repository = repository
-    }
-    
-    func metadata(url: URL, completion: ((PrinkMetadata?, Error?) -> Void)?) {
-        if let metadata = repository.metadata(url: url) {
-            completion?(metadata, nil)
-            return
-        }
-        
-        fetchMetadata(url: url, completion: completion)
-    }
+internal class OnMemoryRepository: PrinkRepository {
+    private var metadataDictionary: [URL: LPLinkMetadata] = [:]
 
-    private func fetchMetadata(url: URL, completion: ((PrinkMetadata?, Error?) -> Void)?) {
-        let provider = LPMetadataProvider()
-        provider.startFetchingMetadata(for: url) { (metadata, error) in
-            DispatchQueue.main.async {
-                if let error = error {
-                    completion?(nil, error)
-                    return
-                }
-                
-                guard let metadata = metadata else {
-                    completion?(nil, nil)
-                    return
-                }
-                
-                completion?(PrinkMetadata(metadata: metadata), nil)
-            }
-        }
+    func store(metadata: LPLinkMetadata) -> Bool {
+        guard let url = metadata.url else { return false }
+        metadataDictionary[url] = metadata
+        return true
     }
-}
-
-protocol PrinkRepository {
-    func metadata(url: URL) -> PrinkMetadata?
-    func store(metadata: PrinkMetadata) -> Bool
+    
+    func metadata(url: URL) -> LPLinkMetadata? {
+        return metadataDictionary[url]
+    }
 }
 
 internal class UserDefaultRepository: PrinkRepository {
     private let store = UserDefaults.standard
     private let key = "PrinkCache"
     
-    func store(metadata: PrinkMetadata) -> Bool {
+    func store(metadata: LPLinkMetadata) -> Bool {
         do {
             let data = try NSKeyedArchiver.archivedData(withRootObject: metadata, requiringSecureCoding: true)
             var metadatas: [String: Data] = store.dictionary(forKey: self.key) as? [String: Data] ?? [:]
@@ -69,14 +43,14 @@ internal class UserDefaultRepository: PrinkRepository {
         }
     }
     
-    func metadata(url: URL) -> PrinkMetadata? {
+    func metadata(url: URL) -> LPLinkMetadata? {
         guard let metadatas = store.dictionary(forKey: key) as? [String: Data],
             let data = metadatas[url.absoluteString] else {
             return nil
         }
 
         do {
-            guard let metadata = try NSKeyedUnarchiver.unarchivedObject(ofClass: PrinkMetadata.self, from: data) else {
+            guard let metadata = try NSKeyedUnarchiver.unarchivedObject(ofClass: LPLinkMetadata.self, from: data) else {
                 return nil
             }
             
